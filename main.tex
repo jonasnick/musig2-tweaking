@@ -263,20 +263,18 @@ and uses Wagner's algorithm to find a $t^{(\ell)}, 1 \le \ell \le \lmax$ for eac
 The honest signer will reply with $\kmax$ partial signatures $s_1^{(\si)} = r_{1,1}^{(\si)} + b r_{1,2}^{(\si)} +  c^{(\si)} \cdot a_1^{(\si)} (x_1 + t^{(f(\si))})$.
 The adversary is able to obtain
 \begin{align}\label{eq:s-sum}
-  s_1^* &=  \sum_{\si=1}^\smax s_1^{(\si)}\\
+  s_1^{*'} &=  \sum_{\si=1}^\smax s_1^{(\si)}\\
   &= \sum_{\si=1}^\smax \left( r_{1,1}^{(\si)} br_{1,2}^{(\si)}\right) +  \left(\sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}\right) \cdot x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))} \\
-  &= \log_g(R^*) +  c^* x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))},
+  &= \log_g(R^*) +  c^* x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}
 \end{align}
 where the last equality follows from Equation~\eqref{eq:wagner-musig}.
-We want $(R^*, s^*)$ to be a valid forgery on message $m^*$ for public key $X_1$ (which is not the case here).
+Then the adversary can subtract the unwanted term as follows
+\[
+  s_1^* =  s_1^{*'} - \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}
+\]
+to obtain $(R^*, s^*)$, a valid forgery on message $m^*$ for public key $X_1$.
 
 \section{(Preliminary) Conclusion}
-This attack on the specific scheme doesn't work because the adversary doesn't know $f$ and therefore $\sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}$ when determining $c^*$ and therefore can't calculate a valid target public key.
-Even if that was possible, the adversary would only forge for some random target public key which seems fine in practical security models.
-However, it may be possible to mount a secondary Wagner's attack that allows further grinding such that $t = \sum_{\si=1}^\smax t^{(f(\si))}$ for some target tweak $t$.
-If the honest signer would take the tweak $t$ directly instead of $C$, then this attack may be even easier.
-
 However, Equation~\eqref{eq:s-sum} seems to indicate that if the honest signer signs with multiple random keys instead of tweaked keys then this attack does not apply.
 The adversary would only be able to obtain a $s_1^* = \log_g(R^*) +  \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)} x^{(f(\si))}$.
-
 \end{document}
