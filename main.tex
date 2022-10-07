@@ -251,7 +251,7 @@ The adversary opens $\smax = 2^{\sqrt{\log_2(p)}-1}$ concurrent signing sessions
 
 The adversary draws $\lmax \in O(2^{2\sqrt{\log_2(p)}})$ values $C_1, \ldots, C_\lmax$ at random.
 Let  $L = \{X_1g^{t^{(1)}}, \ldots, X_1g^{t^{(\lmax)}}\}$ where $t^{(\ell)}$ are the tweaks and  $\tX=KeyAgg(L)$ be the corresponding aggregate public key.
-\jnote{The attack probably doesn't require such large $L$ but can work with multiple smaller multisets of keys}
+\jnote{The attack probably doesn't require such large $L$ but can work with multiple smaller multisets of keys? NO if we'd select between different $L$ then $b$ would change between the sessions which changes target $R^*$.}
 
 Given $R_1 = \sum_{\si=1}^\smax R_{1,1}^{(\si)}, R_2 = \sum_{\si=1}^\smax R_{1,2}^{(\si)}$ and a forgery target message $m^*$, the adversary computes $b = \Hnon(\tX,(R_1,R_2),m)$ and $R^*  =  \prod_{\si=1}^{\smax} R_{1,1}^{(\si)} (R_{1,2}^{(\si)})^b$.
 and uses Wagner's algorithm to find a $t^{(\ell)}, 1 \le \ell \le \lmax$ for each session $\si, 1\le \si \le \smax$ (in other words a function $f:[1, \smax] \rightarrow [1,\lmax]$) such that
@@ -277,4 +277,101 @@ to obtain $(R^*, s^*)$, a valid forgery on message $m^*$ for public key $X_1$.
 \section{(Preliminary) Conclusion}
 However, Equation~\eqref{eq:s-sum} seems to indicate that if the honest signer signs with multiple random keys instead of tweaked keys then this attack does not apply.
 The adversary would only be able to obtain a $s_1^* = \log_g(R^*) +  \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)} x^{(f(\si))}$.
+
+\section{Possible Fix}
+See Figure \ref{fig:ms}.
+\begin{figure}
+ \begin{tcolorbox}[boxsep=-1mm]
+  \begin{pchstack}[center]
+   \begin{pcvstack}
+    \procedure{$\setup(\secparam)$}{%
+      \gparam \gets \grgen(\secparam) \\
+      \text{Select three hash functions}\\
+      \t \Hagg, \Hnon, \Hsig:\str\to\integ_p\\
+      \param \defeq (\gparam, \Hagg, \Hnon, \Hsig)\\
+      \Tsesh \defeq \emptyset\\
+      \pcreturn \param
+    }
+    \pcvspace
+    \procedure{$\keygen()$}{%
+      % (p,\GG,g) \defeq \param \\
+      x \sample \ZZ_p \pcsc X \defeq g^x \\
+      \sk \defeq x \pcsc \pk \defeq X \\
+      \pcreturn (\sk,\pk)
+    }
+    \pcvspace
+    \procedure{$\musigcoef(L,X_i)$}{%
+      \pcreturn \Hagg(L,X_i)
+    }
+    \pcvspace
+    \procedure{$\keyagg(L)$}{%
+      \{X_1,\ldots,X_n\} \defeq L \\
+      \pcfor i \defeq 1 \ldots n \pcdo \\
+      \t a_i \defeq \musigcoef(L,X_i)\\
+      \pcreturn \tX \defeq \sprod_{i=1}^n X_i^{a_i}
+    }
+    \pcvspace
+    \procedure{$\ver(\apk,m,\sigma)$}{%
+      % (p,\GG,g) \defeq \param \\
+      \tX \defeq \apk \pcsc (R,s) \defeq \sigma \\
+      c \defeq \Hsig(\tX,R,m) \\
+      \pcreturn (g^s = R \tX^c)
+    }
+    \pcvspace
+    \procedure{$\sign(\textcolor{red}{\sk_1, t})$}{%
+%       (p,\GG,g) \defeq \param \\
+      \pclinecomment{Local signer has index $1$.} \\
+      \pcfor j \defeq 1 \ldots \nu \pcdo \\
+        \t r_{1,j} \sample \ZZ_p \pcsc R_{1,j} \defeq g^{r_{1,j}} \\
+      \msg_1 \defeq (R_{1,1},\ldots,R_{1,\nu}) \\
+      \state_1 \defeq (r_{1,1},\ldots,r_{1,\nu}) \\
+      \textcolor{red}{\Tsesh(r_{1,1},\ldots,r_{1,\nu}) = \textcolor{red}{\sk_1 + t \bmod p}}\\
+      \pcreturn (\msg_1,\state_1)
+    }
+   \end{pcvstack}
+   \iffull \pchspace[5em] \else \pchspace[0.7em] \fi
+   \begin{pcvstack}
+   \procedure{$\signagg(\msg_1,\ldots,\msg_n)$}{%
+     \pcfor i \defeq 1 \ldots n \pcdo \\
+     \t (R_{i,1}, \ldots, R_{i,\nu}) \defeq \msg_i\\
+     \pcfor j \defeq 1 \ldots \nu \pcdo \\
+     \t R_j \defeq \sprod_{i=1}^n R_{i,j}\\
+     \pcreturn \msg \defeq (R_1, \ldots, R_\nu)
+    }
+    \pcvspace
+    \procedure{$\sign'(\state_1,\msg,m,(\pk_2,\ldots,\pk_n))$}{%
+      \pclinecomment{$\sign'$ must be called at most once per $\state_1$.} \\
+      (r_{1,1},\ldots,r_{1,\nu}) \defeq \state_1 \\
+      \textcolor{red}{x_1 \defeq \Tsesh(r_{1,1}, \ldots, r_{1,\nu})}\\
+      X_1 \defeq g^{x_1} \\
+      (X_2, \ldots, X_n) \defeq (\pk_2, \ldots, \pk_n)\\
+      L \defeq \{X_1,\ldots,X_n\} \\
+      a_1 \defeq \musigcoef(L,X_1)\\
+      \tX \defeq \keyagg(L)\\
+      (R_1, \ldots, R_\nu) \defeq \msg\\
+      b \defeq \Hnon(\tX,(R_1,\ldots,R_{\nu}),m) \\
+      R \defeq \sprod_{j=1}^{\nu} R_j^{b^{j-1}} \\
+      c \defeq \Hsig(\tX,R,m) \\
+      s_1 \defeq c a_1 x_1 + \ssum_{i=1}^{\nu} r_{1,j} b^{j-1} \bmod p \\
+      \state'_1 \defeq R \pcsc \msg'_1 \defeq s_1 \\
+      \pcreturn (\state'_1,\msg'_1)
+    }
+    \pcvspace
+    \procedure{$\signagg'(\msg'_1,\ldots,\msg'_n)$}{%
+      (s_1, \ldots, s_n) \defeq (\msg'_1, \ldots, \msg'_n)\\
+      s \defeq \ssum_{i=1}^n s_i \bmod p \\
+      \pcreturn \msg' \defeq s
+    }
+    \pcvspace
+    \procedure{$\sign''(\state'_1,\msg')$}{%
+      R \defeq \state'_1 \pcsc s \defeq \msg'\\
+      \pcreturn \sigma \defeq (R,s)
+    }
+   \end{pcvstack}
+  \end{pchstack}
+ \end{tcolorbox}
+ \caption{The modified multi-signature scheme $\musigtwotweak[\grgen,\nu]$. Modifications in \textcolor{red}{red}.}
+ \label{fig:ms}
+\end{figure}
+
 \end{document}
