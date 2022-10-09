@@ -105,7 +105,6 @@
   urlcolor=blue,
   bookmarksopen,
   bookmarksdepth=3,
-  pdftitle={MuSig2: Simple Two-Round Schnorr Multi-Signatures}
 }
 
 
@@ -136,12 +135,41 @@
 
 
 \begin{document}
+\author{
+  Jonas Nick\inst{1} \and
+  Tim Ruffing\inst{1} \and
+  Yannick Seurin\inst{2}
+ }
+ \institute{
+ Blockstream \and
+ ANSSI, Paris, France\iffull \\[1.5ex]
+  \email{
+  jonas@n-ck.net \\
+  crypto@timruffing.de \\
+  yannick.seurin@m4x.org
+  }
+ \fi
+}
+
 \title{
-    Unforgeability of MuSig2 with tweaking
+    A Note on Unforgeability of MuSig2 with Tweaking
 }
 \maketitle
 
-\section{Modified Scheme}
+\begin{abstract}
+\emph{Key Tweaking} refers to the process of producing a new pair of secret and public key from a given pair.
+This is used, for example, to derive fresh keys from a master keypair or to commit to a value in a public key.
+In this note, we show that a variant of $\musigtwo$ with naive tweaking is insecure and propose a variant that is not vulnerable against the attack.
+
+\end{abstract}
+
+\section{The Vulnerable Scheme}
+TODO: fix nu everywhere
+TODO
+This is MuSig with some version of tweaking.
+weak because attacker only has control over the contract, not the tweak.
+TODO: what is tweaking
+For simplicity only two nonces
 See Figure \ref{fig:ms}.
 \begin{figure}
  \begin{tcolorbox}[boxsep=-1mm]
@@ -200,19 +228,19 @@ See Figure \ref{fig:ms}.
      \pcreturn \msg \defeq (R_1, \ldots, R_\nu)
     }
     \pcvspace
-    \procedure{$\sign'(\state_1,\msg,\sk_1,m,(\pk_2,\ldots,\pk_n), \textcolor{red}{C})$}{%
+    \procedure{$\sign'(\state_1,\msg,\sk_1,m,(\pk_2,\ldots,\pk_n), \mathmod{C})$}{%
       \pclinecomment{$\sign'$ must be called at most once per $\state_1$.} \\
       (r_{1,1},\ldots,r_{1,\nu}) \defeq \state_1 \\
-      x_1 \defeq \sk_1 \pcsc X_1' \defeq g^{x_1} \pcsc \textcolor{red}{t \defeq \Hcon(X_1', C) \pcsc X_1 \defeq X_1' g^t} \\
+      x_1 \defeq \sk_1 \pcsc X_1' \defeq g^{x_1} \pcsc \mathmod{t \defeq \Ht(X_1', C) \pcsc X_1 \defeq X_1' g^t} \\
       (X_2, \ldots, X_n) \defeq (\pk_2, \ldots, \pk_n)\\
       L \defeq \{X_1,\ldots,X_n\} \\
       a_1 \defeq \musigcoef(L,X_1)\\
       \tX \defeq \keyagg(L)\\
-      (R_1, \ldots, R_\nu) \defeq \msg\\
-      b \defeq \Hnon(\tX,(R_1,\ldots,R_{\nu}),m) \\
+      (R_1,\ldots,R_\nu) \defeq \msg\\
+      b \defeq \Hnon(\tX,(R_1,\ldots,R_\nu),m) \\
       R \defeq \sprod_{j=1}^{\nu} R_j^{b^{j-1}} \\
       c \defeq \Hsig(\tX,R,m) \\
-      s_1 \defeq c a_1 \textcolor{red}{(x_1 + t)} + \ssum_{i=1}^{\nu} r_{1,j} b^{j-1} \bmod p \\
+      s_1 \defeq c a_1 \mathmod{(x_1 + t)} + \ssum_{i=1}^{\nu} r_{1,j} b^{j-1} \bmod p \\
       \state'_1 \defeq R \pcsc \msg'_1 \defeq s_1 \\
       \pcreturn (\state'_1,\msg'_1)
     }
@@ -230,41 +258,40 @@ See Figure \ref{fig:ms}.
    \end{pcvstack}
   \end{pchstack}
  \end{tcolorbox}
- \caption{The modified multi-signature scheme $\musigtwotweak[\grgen,\nu]$. Modifications in \textcolor{red}{red}.}
+ \caption{The multi-signature scheme $\musigtwontweak[\grgen,\nu]$. The differences to $\musigtwo[\grgen,\nu]$ are displayed in \textmod{red}.}
  \label{fig:ms}
 \end{figure}
 
-\section{Wagner}
-The attack relies on Wagner's algorithm for solving the Generalized Birthday Problem, which can be defined as follows for the purpose of this paper:
+\section{Generalized Birthday Problem}
+The attack against $\musigtwontweak$ makes use of Wagner's algorithm for solving the Generalized Birthday Problem
+It can be defined as follows for the purpose of this paper:
 Given a constant value $t\in\integ_p$, an integer $\smax$,
 and access to random oracle $H$ mapping onto $\integ_p$,
-find a set $\{q_1, \ldots, q_{\smax}\}$ of $\smax$ queries  such that
+find a set $\{q_1, \ldots, q_{\smax}\}$ of $\smax$ queries such that
 \(
   \sum_{\si=1}^{\smax} H(q_{\si}) = t.
 \)
 For $\smax = 2^{\sqrt{\log_2(p)}-1}$ the complexity of this algorithm is $O(2^{2\sqrt{\log_2(p)}})$.
 \jnote{Perhaps can use BLOR? ``If the attacker is able to open more sessions concurrently, the improved polynomial-time attack by Benhamouda \emph{et al.}~\cite{add:BLOR20} assumes $\smax > \log_2 p$ sessions, but then has complexity $O(\smax \log_2 p)$ and a negligible running time in practice.''}
 
-\section{Attack}
-The attack proceeds as follows.
-The adversary opens $\smax = 2^{\sqrt{\log_2(p)}-1}$ concurrent signing sessions and receives $\smax$ nonce pairs $R_{1,1}^{(1)}, R_{1,2}^{(1)}, \ldots, R_{1,1}^{(\smax)}, R_{1,2}^{(\smax)}$ from the honest signer with public key $X_1=g^{x_1}$.
+\section{Description of the Attack against $\musigtwontweak$}
 
-The adversary draws $\lmax \in O(2^{2\sqrt{\log_2(p)}})$ values $C_1, \ldots, C_\lmax$ at random.
-Let  $L = \{X_1g^{t^{(1)}}, \ldots, X_1g^{t^{(\lmax)}}\}$ where $t^{(\ell)}$ are the tweaks and  $\tX=KeyAgg(L)$ be the corresponding aggregate public key.
-\jnote{The attack probably doesn't require such large $L$ but can work with multiple smaller multisets of keys? NO if we'd select between different $L$ then $b$ would change between the sessions which changes target $R^*$.}
+The adversary first draws $\lmax \in O(2^{2\sqrt{\log_2(p)}})$ values $C^{(1)}, \ldots, C^{(\lmax)}$ at random and computes tweaks $t^{(\ell)} = \Ht(X_1', C^{(\ell)})$ for all $\ell \in [1,\lmax]$.
+Let  $L = \{X_1'g^{t^{(1)}}, \ldots, X_1'g^{t^{(\lmax)}}\}$ be the multiset of public keys and  $\tX=\keyagg(L)$ be the corresponding aggregate public key.
 
+The adversary opens $\smax = 2^{\sqrt{\log_2(p)}-1}$ concurrent signing sessions by requesting $\smax$ nonce pairs $R_{1,1}^{(1)}, R_{1,2}^{(1)}, \ldots, R_{1,1}^{(\smax)}, R_{1,2}^{(\smax)}$ from the honest signer with (untweaked) public key $X_1'=g^{x_1}$.
 Given $R_1 = \sum_{\si=1}^\smax R_{1,1}^{(\si)}, R_2 = \sum_{\si=1}^\smax R_{1,2}^{(\si)}$ and a forgery target message $m^*$, the adversary computes $b = \Hnon(\tX,(R_1,R_2),m)$ and $R^*  =  \prod_{\si=1}^{\smax} R_{1,1}^{(\si)} (R_{1,2}^{(\si)})^b$.
-and uses Wagner's algorithm to find a $t^{(\ell)}, 1 \le \ell \le \lmax$ for each session $\si, 1\le \si \le \smax$ (in other words a function $f:[1, \smax] \rightarrow [1,\lmax]$) such that
+and uses Wagner's algorithm to find a value $C^{(\ell)}, \ell \in [1, \lmax]$ for each session $\si$ (in other words a function $f:[1, \smax] \rightarrow [1,\lmax]$) such that
+TODO
 
 \begin{equation}\label{eq:wagner-musig}
-  \sum_{\si=1}^{\smax} \underbrace{\Hagg(L, X_1g^{t^{(f(\si))}})}_{=:\,a_1^{(\si)}} \underbrace{\Hsig(\tX, R^*, m)}_{=:\,c^{(\si)}}
-  = \underbrace{\Hsig(X_1, R^*, m^*)}_{=:\,c^*} .
+  \sum_{\si=1}^{\smax} \underbrace{\Hagg(L, X_1'g^{t^{(f(\si))}})}_{=:\,a_1^{(\si)}} \underbrace{\Hsig(\tX, R^*, m)}_{=:\,c^{(\si)}}
+  = \underbrace{\Hsig(X_1', R^*, m^*)}_{=:\,c^*} .
 \end{equation}
-The honest signer will reply with $\kmax$ partial signatures $s_1^{(\si)} = r_{1,1}^{(\si)} + b r_{1,2}^{(\si)} +  c^{(\si)} \cdot a_1^{(\si)} (x_1 + t^{(f(\si))})$.
-The adversary is able to obtain
+The honest signer will reply with $\kmax$ partial signatures $s_1^{(\si)} = r_{1,1}^{(\si)} + b r_{1,2}^{(\si)} +  c^{(\si)} \cdot a_1^{(\si)} (x_1 + t^{(f(\si))})$ which allows the adversary to compute
 \begin{align}\label{eq:s-sum}
   s_1^{*'} &=  \sum_{\si=1}^\smax s_1^{(\si)}\\
-  &= \sum_{\si=1}^\smax \left( r_{1,1}^{(\si)} br_{1,2}^{(\si)}\right) +  \left(\sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}\right) \cdot x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))} \\
+  &= \sum_{\si=1}^\smax r_{1,1}^{(\si)} br_{1,2}^{(\si)} +  \left(\sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}\right) \cdot x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))} \\
   &= \log_g(R^*) +  c^* x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}
 \end{align}
 where the last equality follows from Equation~\eqref{eq:wagner-musig}.
@@ -272,14 +299,19 @@ Then the adversary can subtract the unwanted term as follows
 \[
   s_1^* =  s_1^{*'} - \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}
 \]
-to obtain $(R^*, s^*)$, a valid forgery on message $m^*$ for public key $X_1$.
+to obtain $(R^*, s^*)$, a valid forgery on message $m^*$ for public key $X_1'$.
 
-\section{(Preliminary) Conclusion}
-However, Equation~\eqref{eq:s-sum} seems to indicate that if the honest signer signs with multiple random keys instead of tweaked keys then this attack does not apply.
-The adversary would only be able to obtain a $s_1^* = \log_g(R^*) +  \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)} x^{(f(\si))}$.
+\section{Where the security proof of $\musigtwo$ fails against $\musigtwontweak$}
+TODO
+Look at ROM proof of MuSig (section)
+We have a != a but b = b
 
-\section{Possible Fix}
-See Figure \ref{fig:ms}.
+\section{Tweaking in MuSig2 without }
+TODO
+Section's bla and blub indicate that is secure when
+Make sure that attacker can not choose the signers pubkey after seeing the signers nonces.
+Here, adversary can have full control over $t$.
+
 \begin{figure}
  \begin{tcolorbox}[boxsep=-1mm]
   \begin{pchstack}[center]
@@ -289,7 +321,6 @@ See Figure \ref{fig:ms}.
       \text{Select three hash functions}\\
       \t \Hagg, \Hnon, \Hsig:\str\to\integ_p\\
       \param \defeq (\gparam, \Hagg, \Hnon, \Hsig)\\
-      \Tsesh \defeq \emptyset\\
       \pcreturn \param
     }
     \pcvspace
@@ -318,14 +349,13 @@ See Figure \ref{fig:ms}.
       \pcreturn (g^s = R \tX^c)
     }
     \pcvspace
-    \procedure{$\sign(\textcolor{red}{\sk_1, t})$}{%
+    \procedure{$\sign(\mathmod{\sk_1, t})$}{%
 %       (p,\GG,g) \defeq \param \\
       \pclinecomment{Local signer has index $1$.} \\
       \pcfor j \defeq 1 \ldots \nu \pcdo \\
         \t r_{1,j} \sample \ZZ_p \pcsc R_{1,j} \defeq g^{r_{1,j}} \\
       \msg_1 \defeq (R_{1,1},\ldots,R_{1,\nu}) \\
-      \state_1 \defeq (r_{1,1},\ldots,r_{1,\nu}) \\
-      \textcolor{red}{\Tsesh(r_{1,1},\ldots,r_{1,\nu}) = \textcolor{red}{\sk_1 + t \bmod p}}\\
+      \state_1 \defeq (r_{1,1},\ldots,r_{1,\nu}, \mathmod{\sk_1 + t \bmod p}) \\
       \pcreturn (\msg_1,\state_1)
     }
    \end{pcvstack}
@@ -339,10 +369,9 @@ See Figure \ref{fig:ms}.
      \pcreturn \msg \defeq (R_1, \ldots, R_\nu)
     }
     \pcvspace
-    \procedure{$\sign'(\state_1,\msg,m,(\pk_2,\ldots,\pk_n))$}{%
+    \procedure{$\sign'(\state_1,\msg,\mathmod{\sk_1},m,(\pk_2,\ldots,\pk_n))$}{%
       \pclinecomment{$\sign'$ must be called at most once per $\state_1$.} \\
-      (r_{1,1},\ldots,r_{1,\nu}) \defeq \state_1 \\
-      \textcolor{red}{x_1 \defeq \Tsesh(r_{1,1}, \ldots, r_{1,\nu})}\\
+      (r_{1,1},\ldots,r_{1,\nu}, \mathmod{x_1}) \defeq \state_1 \\
       X_1 \defeq g^{x_1} \\
       (X_2, \ldots, X_n) \defeq (\pk_2, \ldots, \pk_n)\\
       L \defeq \{X_1,\ldots,X_n\} \\
@@ -370,8 +399,14 @@ See Figure \ref{fig:ms}.
    \end{pcvstack}
   \end{pchstack}
  \end{tcolorbox}
- \caption{The modified multi-signature scheme $\musigtwotweak[\grgen,\nu]$. Modifications in \textcolor{red}{red}.}
+ \caption{The multi-signature scheme $\musigtwotweak[\grgen,\nu]$. The differences to $\musigtwo[\grgen,\nu]$ are displayed in \textmod{red}.}
  \label{fig:ms}
 \end{figure}
+
+\section{Conclusion}
+- Other multisigs and fix?
+    - MuSig1, PoP, FROST
+- looses freedom for the dev
+
 
 \end{document}
