@@ -276,26 +276,35 @@ For $\smax = 2^{\sqrt{\log_2(p)}-1}$ the complexity of this algorithm is $O(2^{2
 
 \section{Description of the Attack against $\musigtwontweak$}
 
-The adversary first draws $\lmax \in O(2^{2\sqrt{\log_2(p)}})$ values $C^{(1)}, \ldots, C^{(\lmax)}$ at random and computes tweaks $t^{(\ell)} = \Ht(X_1', C^{(\ell)})$ for all $\ell \in [1,\lmax]$.
-Let  $L = \{X_1'g^{t^{(1)}}, \ldots, X_1'g^{t^{(\lmax)}}\}$ be the multiset of public keys and  $\tX=\keyagg(L)$ be the corresponding aggregate public key.
+The adversary draws $\lmax \in O(2^{2\sqrt{\log_2(p)}})$ values $C^{(1)}, \ldots, C^{(\lmax)}$ at random and computes tweaks $t^{(\ell)}$, the multiset of public keys $L$ and aggregate key $\tX$ for the (untweaked) public key of the honest signer $X_1'=g^{x_1}$ as
+\begin{align*}
+t^{(\ell)} &= \Ht(X_1', C^{(\ell)}), \quad \ell \in [1,\lmax] \\
+L &= \{X_1'g^{t^{(1)}}, \ldots, X_1'g^{t^{(\lmax)}}\} \\
+\tX &=\keyagg(L).
+\end{align*}
 
-The adversary opens $\smax = 2^{\sqrt{\log_2(p)}-1}$ concurrent signing sessions by requesting $\smax$ nonce pairs $R_{1,1}^{(1)}, R_{1,2}^{(1)}, \ldots, R_{1,1}^{(\smax)}, R_{1,2}^{(\smax)}$ from the honest signer with (untweaked) public key $X_1'=g^{x_1}$.
-Given $R_1 = \sum_{\si=1}^\smax R_{1,1}^{(\si)}, R_2 = \sum_{\si=1}^\smax R_{1,2}^{(\si)}$ and a forgery target message $m^*$, the adversary computes $b = \Hnon(\tX,(R_1,R_2),m)$ and $R^*  =  \prod_{\si=1}^{\smax} R_{1,1}^{(\si)} (R_{1,2}^{(\si)})^b$.
-and uses Wagner's algorithm to find a value $C^{(\ell)}, \ell \in [1, \lmax]$ for each session $\si$ (in other words a function $f:[1, \smax] \rightarrow [1,\lmax]$) such that
-TODO
+Then, the adversary opens $\smax = 2^{\sqrt{\log_2(p)}-1}$ concurrent signing sessions by requesting $\smax$ nonce tuples $R_{1,1}^{(1)}, \ldots, R_{1,\nu}^{(1)}, \ldots, R_{1,1}^{(\smax)}, \ldots, R_{1,\nu}^{(\smax)}$ from the honest signer and computes
+\begin{align*}
+  R_j &= \sum_{\si=1}^\smax R_{1,j}^{(\si)}, \quad j \in [1,\nu]\\
+  b &= \Hnon(\tX,(R_1,\ldots,R_\nu),m)\\
+  R^* &= \prod_{j=1}^{\nu} R_j^{b^{j-1}}.
+\end{align*}
+Now it is possible to use Wagner's algorithm to find a function $f:[1, \smax] \rightarrow [1,\lmax]$ that associates a value $t^{(\ell)}$ to each session $\si$ such that
 
 \begin{equation}\label{eq:wagner-musig}
   \sum_{\si=1}^{\smax} \underbrace{\Hagg(L, X_1'g^{t^{(f(\si))}})}_{=:\,a_1^{(\si)}} \underbrace{\Hsig(\tX, R^*, m)}_{=:\,c^{(\si)}}
   = \underbrace{\Hsig(X_1', R^*, m^*)}_{=:\,c^*} .
 \end{equation}
-The honest signer will reply with $\kmax$ partial signatures $s_1^{(\si)} = r_{1,1}^{(\si)} + b r_{1,2}^{(\si)} +  c^{(\si)} \cdot a_1^{(\si)} (x_1 + t^{(f(\si))})$ which allows the adversary to compute
+for a forgery target message $m^*$.
+For all $\si \in [1, \kmax]$ the honest signer is asked for a partial signature using value $C^{f(\si)}$ which is answered with $s_1^{(\si)} = r_{1,1}^{(\si)} + b r_{1,2}^{(\si)} +  c^{(\si)} \cdot a_1^{(\si)} (x_1 + t^{(f(\si))})$.
+This  allows the adversary to compute
 \begin{align}\label{eq:s-sum}
   s_1^{*'} &=  \sum_{\si=1}^\smax s_1^{(\si)}\\
   &= \sum_{\si=1}^\smax r_{1,1}^{(\si)} br_{1,2}^{(\si)} +  \left(\sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}\right) \cdot x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))} \\
   &= \log_g(R^*) +  c^* x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}
 \end{align}
 where the last equality follows from Equation~\eqref{eq:wagner-musig}.
-Then the adversary can subtract the unwanted term as follows
+The last summand can be subtracted as
 \[
   s_1^* =  s_1^{*'} - \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}
 \]
