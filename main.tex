@@ -164,12 +164,10 @@ In this note, we show that a variant of $\musigtwo$ with naive tweaking is insec
 \end{abstract}
 
 \section{The Vulnerable Scheme}
-TODO: fix nu everywhere
-TODO
 This is MuSig with some version of tweaking.
 weak because attacker only has control over the contract, not the tweak.
+\jnote{potentially an even weaker model is where the signer comes up with random tweaks $t$ by itself}
 TODO: what is tweaking
-For simplicity only two nonces
 See Figure \ref{fig:ms}.
 \begin{figure}
  \begin{tcolorbox}[boxsep=-1mm]
@@ -413,9 +411,10 @@ Here, adversary can have full control over $t$.
 \end{figure}
 
 \section{Conclusion}
-- Other multisigs and fix?
-    - MuSig1, PoP, FROST
-- looses freedom for the dev
-
-
-\end{document}
+Other multisigs and fix?
+\begin{itemize}
+\item MuSig1 with naive tweaking
+\item multisig with PoK and naive tweaking: there's no ``naive'' tweaking with PoK
+\item FROST-1 with naive tweakinig: not vulnerable due to different $b_i$
+\item FROST-2: perhaps vulnerable due to lagrange coefficients, need to input set of signers into nonce gen (but probable need to do that anyway)
+\end{itemize}
