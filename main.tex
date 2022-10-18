@@ -410,6 +410,12 @@ Here, adversary can have full control over $t$.
  \label{fig:ms}
 \end{figure}
 
+Other possible fixes:
+\begin{itemize}
+\item commit to pk
+\item use separate $b$ per signer
+\end{itemize}
+
 \section{Conclusion}
 Other multisigs and fix?
 \begin{itemize}
@@ -418,3 +424,5 @@ Other multisigs and fix?
 \item FROST-1 with naive tweakinig: not vulnerable due to different $b_i$
 \item FROST-2: perhaps vulnerable due to lagrange coefficients, need to input set of signers into nonce gen (but probable need to do that anyway)
 \end{itemize}
+
+\end{document}
