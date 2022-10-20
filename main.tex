@@ -376,7 +376,7 @@ Here, adversary can have full control over $t$.
      \pcreturn \msg \defeq (R_1, \ldots, R_\nu)
     }
     \pcvspace
-    \procedure{$\sign'(\state_1,\msg,\mathmod{\sk_1},m,(\pk_2,\ldots,\pk_n))$}{%
+    \procedure{$\sign'(\state_1,\msg,\mathmod{\stkout{\sk_1}},m,(\pk_2,\ldots,\pk_n))$}{%
       \pclinecomment{$\sign'$ must be called at most once per $\state_1$.} \\
       (r_{1,1},\ldots,r_{1,\nu}, \mathmod{x_1}) \defeq \state_1 \\
       X_1 \defeq g^{x_1} \\
