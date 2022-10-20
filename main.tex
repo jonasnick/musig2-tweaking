@@ -166,7 +166,6 @@ In this note, we show that a variant of $\musigtwo$ with naive tweaking is insec
 \section{The Vulnerable Scheme}
 This is MuSig with some version of tweaking.
 weak because attacker only has control over the contract, not the tweak.
-\jnote{potentially an even weaker model is where the signer comes up with random tweaks $t$ by itself}
 TODO: what is tweaking
 See Figure \ref{fig:ms}.
 \begin{figure}
@@ -186,6 +185,11 @@ See Figure \ref{fig:ms}.
       x \sample \ZZ_p \pcsc X \defeq g^x \\
       \sk \defeq x \pcsc \pk \defeq X \\
       \pcreturn (\sk,\pk)
+    }
+    \pcvspace
+    \procedure{$\mathmod{\keytweak()}$}{%
+      \mathmod{t \sample \ZZ_p} \\
+      \mathmod{\pcreturn t}
     }
     \pcvspace
     \procedure{$\musigcoef(L,X_i)$}{%
@@ -226,10 +230,12 @@ See Figure \ref{fig:ms}.
      \pcreturn \msg \defeq (R_1, \ldots, R_\nu)
     }
     \pcvspace
-    \procedure{$\sign'(\state_1,\msg,\sk_1,m,(\pk_2,\ldots,\pk_n), \mathmod{C})$}{%
+    \procedure{$\sign'(\state_1,\msg,\sk_1,m,(\pk_2,\ldots,\pk_n), \mathmod{t})$}{%
       \pclinecomment{$\sign'$ must be called at most once per $\state_1$.} \\
+      \mathmod{\pcif t \text{ has not been output by } \Ttweaks} \\
+      \t \mathmod{\pcthen \pcreturn \false} \\
       (r_{1,1},\ldots,r_{1,\nu}) \defeq \state_1 \\
-      x_1 \defeq \sk_1 \pcsc X_1' \defeq g^{x_1} \pcsc \mathmod{t \defeq \Ht(X_1', C) \pcsc X_1 \defeq X_1' g^t} \\
+      x_1 \defeq \sk_1 \mathmod{+ t} \pcsc X_1 \defeq g^{x_1 \mathmod{+ t}} \\
       (X_2, \ldots, X_n) \defeq (\pk_2, \ldots, \pk_n)\\
       L \defeq \{X_1,\ldots,X_n\} \\
       a_1 \defeq \musigcoef(L,X_1)\\
@@ -238,7 +244,7 @@ See Figure \ref{fig:ms}.
       b \defeq \Hnon(\tX,(R_1,\ldots,R_\nu),m) \\
       R \defeq \sprod_{j=1}^{\nu} R_j^{b^{j-1}} \\
       c \defeq \Hsig(\tX,R,m) \\
-      s_1 \defeq c a_1 \mathmod{(x_1 + t)} + \ssum_{i=1}^{\nu} r_{1,j} b^{j-1} \bmod p \\
+      s_1 \defeq c a_1 x_1 + \ssum_{i=1}^{\nu} r_{1,j} b^{j-1} \bmod p \\
       \state'_1 \defeq R \pcsc \msg'_1 \defeq s_1 \\
       \pcreturn (\state'_1,\msg'_1)
     }
@@ -274,9 +280,8 @@ For $\smax = 2^{\sqrt{\log_2(p)}-1}$ the complexity of this algorithm is $O(2^{2
 
 \section{Description of the Attack against $\musigtwontweak$}
 
-The adversary draws $\lmax \in O(2^{2\sqrt{\log_2(p)}})$ values $C^{(1)}, \ldots, C^{(\lmax)}$ at random and computes tweaks $t^{(\ell)}$, the multiset of public keys $L$ and aggregate key $\tX$ for the (untweaked) public key of the honest signer $X_1'=g^{x_1}$ as
+The adversary calls $\keytweak$ $\lmax \in O(2^{2\sqrt{\log_2(p)}})$ times to obtain values $t^{(1)}, \ldots, t^{(\lmax)}$ and computes the multiset of public keys $L$ and aggregate key $\tX$ for the (untweaked) public key of the honest signer $X_1'=g^{x_1}$ as
 \begin{align*}
-t^{(\ell)} &= \Ht(X_1', C^{(\ell)}), \quad \ell \in [1,\lmax] \\
 L &= \{X_1'g^{t^{(1)}}, \ldots, X_1'g^{t^{(\lmax)}}\} \\
 \tX &=\keyagg(L).
 \end{align*}
@@ -338,6 +343,11 @@ Here, adversary can have full control over $t$.
       \pcreturn (\sk,\pk)
     }
     \pcvspace
+    \procedure{$\mathmod{\keytweak()}$}{%
+      \mathmod{t \sample \ZZ_p} \\
+      \mathmod{\pcreturn t}
+    }
+    \pcvspace
     \procedure{$\musigcoef(L,X_i)$}{%
       \pcreturn \Hagg(L,X_i)
     }
@@ -356,8 +366,8 @@ Here, adversary can have full control over $t$.
       \pcreturn (g^s = R \tX^c)
     }
     \pcvspace
-    \procedure{$\sign(\mathmod{\sk_1, t})$}{%
-%       (p,\GG,g) \defeq \param \\
+    \procedure{$\sign(\mathmod{\sk_1})$}{%
+      \mathmod{t \defeq \mathmod{\keytweak()}} \\
       \pclinecomment{Local signer has index $1$.} \\
       \pcfor j \defeq 1 \ldots \nu \pcdo \\
         \t r_{1,j} \sample \ZZ_p \pcsc R_{1,j} \defeq g^{r_{1,j}} \\
