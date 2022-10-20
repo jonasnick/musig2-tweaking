@@ -152,22 +152,23 @@
 }
 
 \title{
-    A Note on Unforgeability of MuSig2 with Tweaking
+    A Note on Unforgeability of MuSig2 with Key Tweaking
 }
 \maketitle
 
 \begin{abstract}
 \emph{Key Tweaking} refers to the process of producing a new pair of secret and public key from a given pair.
-This is used, for example, to derive fresh keys from a master keypair or to commit to a value in a public key.
+This is used, for example, to derive fresh keys from a master keypair or to create a commitment to a value such that the commitment is also a public key.
 In this note, we show that a variant of $\musigtwo$ with naive tweaking is insecure and propose a variant that is not vulnerable against the attack.
-
 \end{abstract}
 
 \section{The Vulnerable Scheme}
-This is MuSig with some version of tweaking.
-weak because attacker only has control over the contract, not the tweak.
-TODO: what is tweaking
-See Figure \ref{fig:ms}.
+Figure \ref{fig:ms} shows $\musigtwontweak$, a multi-signature scheme that is identical to $\musigtwo$ except that it has the additional capability of signing for a tweaked public key.
+There are multiple variants of tweaking, which differ mainly in how the tweak $t$ is derived.
+We chose a variant of tweaking for $\musigtwontweak$ that gives the adversary the minimal power necessary to make the attack work.
+In particular, the honest signer generates uniformly random tweaks without input from the adversary and outputs possible tweaks.
+$\musigtwontweak$ uses \emph{additive} tweaking, but the attack similarly applies to \emph{multiplicative} tweaking.
+
 \begin{figure}
  \begin{tcolorbox}[boxsep=-1mm]
   \begin{pchstack}[center]
@@ -232,7 +233,7 @@ See Figure \ref{fig:ms}.
     \pcvspace
     \procedure{$\sign'(\state_1,\msg,\sk_1,m,(\pk_2,\ldots,\pk_n), \mathmod{t})$}{%
       \pclinecomment{$\sign'$ must be called at most once per $\state_1$.} \\
-      \mathmod{\pcif t \text{ has not been output by } \Ttweaks} \\
+      \mathmod{\pcif t \neq 0 \text{ and has not been output by } \Ttweaks} \\
       \t \mathmod{\pcthen \pcreturn \false} \\
       (r_{1,1},\ldots,r_{1,\nu}) \defeq \state_1 \\
       x_1 \defeq \sk_1 \mathmod{+ t} \pcsc X_1 \defeq g^{x_1 \mathmod{+ t}} \\
@@ -313,16 +314,23 @@ The last summand can be subtracted as
 \]
 to obtain $(R^*, s^*)$, a valid forgery on message $m^*$ for public key $X_1'$.
 
+
+\section{BLOR attack}
+Benhamouda \emph{et al.}~\cite{add:BLOR20} give an algorithm that solves the ROS problem and can be applied to attack to break unforgeability of $\musigtwontweaking$.
+If the adversary can open at least $\log_2 p$ sessions, then the algorithm has complexity $O(\log_2^2 p)$ and a negligible running time in practice (otherwise a variant of the algorithm can be applied that has a higher complexity).
+In contrast to the attack based on Wagner's algorithm, this attack allows using multisets of public keys that only have two elements.
+
 \section{Where the security proof of $\musigtwo$ fails against $\musigtwontweak$}
 TODO
 Look at ROM proof of MuSig (section)
 We have a != a but b = b
+\jnote{this section is not strictly necessary}
 
-\section{Tweaking in MuSig2 without }
+\section{A Fixed MuSig2 Variant with Tweaking}
 TODO
 Section's bla and blub indicate that is secure when
 Make sure that attacker can not choose the signers pubkey after seeing the signers nonces.
-Here, adversary can have full control over $t$.
+Then the specific attack can not work.
 
 \begin{figure}
  \begin{tcolorbox}[boxsep=-1mm]
@@ -427,12 +435,11 @@ Other possible fixes:
 \end{itemize}
 
 \section{Conclusion}
+Other multisignature schemes that use a key agg coefficient are similarly vulnerable.
 Other multisigs and fix?
 \begin{itemize}
-\item MuSig1 with naive tweaking
+\item MuSig1 with naive tweaking: if tweak comes in
 \item multisig with PoK and naive tweaking: there's no ``naive'' tweaking with PoK
-\item FROST-1 with naive tweakinig: not vulnerable due to different $b_i$
-\item FROST-2: perhaps vulnerable due to lagrange coefficients, need to input set of signers into nonce gen (but probable need to do that anyway)
 \end{itemize}
 
 \end{document}
