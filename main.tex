@@ -233,7 +233,7 @@ $\musigtwontweak$ uses \emph{additive} tweaking, but the attack similarly applie
     \pcvspace
     \procedure{$\sign'(\state_1,\msg,\sk_1,m,(\pk_2,\ldots,\pk_n), \mathmod{t})$}{%
       \pclinecomment{$\sign'$ must be called at most once per $\state_1$.} \\
-      \mathmod{\pcif t \neq 0 \text{ and has not been output by } \Ttweaks} \\
+      \mathmod{\pcif t \neq 0 \text{ and has not been output by } \keytweak} \\
       \t \mathmod{\pcthen \pcreturn \false} \\
       (r_{1,1},\ldots,r_{1,\nu}) \defeq \state_1 \\
       x_1 \defeq \sk_1 \mathmod{+ t} \pcsc X_1 \defeq g^{x_1 \mathmod{+ t}} \\
