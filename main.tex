@@ -163,7 +163,7 @@ In this note, we show that a variant of $\musigtwo$ with naive tweaking is insec
 \end{abstract}
 
 \section{The Vulnerable Scheme}
-Figure \ref{fig:ms} shows $\musigtwontweak$, a multi-signature scheme that is identical to $\musigtwo$ except that it has the additional capability of signing for a tweaked public key.
+Figure \ref{fig:ms-naivetweaking} shows $\musigtwontweak$, a multi-signature scheme that is identical to $\musigtwo$ except that it has the additional capability of signing for a tweaked public key.
 There are multiple variants of tweaking, which differ mainly in how the tweak $t$ is derived.
 We chose a variant of tweaking for $\musigtwontweak$ that gives the adversary the minimal power necessary to make the attack work.
 In particular, the honest signer generates uniformly random tweaks without input from the adversary and outputs possible tweaks.
@@ -236,7 +236,7 @@ $\musigtwontweak$ uses \emph{additive} tweaking, but the attack similarly applie
       \mathmod{\pcif t \neq 0 \text{ and has not been output by } \keytweak} \\
       \t \mathmod{\pcthen \pcreturn \false} \\
       (r_{1,1},\ldots,r_{1,\nu}) \defeq \state_1 \\
-      x_1 \defeq \sk_1 \mathmod{+ t} \pcsc X_1 \defeq g^{x_1 \mathmod{+ t}} \\
+      x_1 \defeq \sk_1 \mathmod{+ t \bmod p} \pcsc X_1 \defeq g^{x_1} \\
       (X_2, \ldots, X_n) \defeq (\pk_2, \ldots, \pk_n)\\
       L \defeq \{X_1,\ldots,X_n\} \\
       a_1 \defeq \musigcoef(L,X_1)\\
@@ -264,7 +264,7 @@ $\musigtwontweak$ uses \emph{additive} tweaking, but the attack similarly applie
   \end{pchstack}
  \end{tcolorbox}
  \caption{The multi-signature scheme $\musigtwontweak[\grgen,\nu]$. The differences to $\musigtwo[\grgen,\nu]$ are displayed in \textmod{red}.}
- \label{fig:ms}
+ \label{fig:ms-naivetweaking}
 \end{figure}
 
 \section{Generalized Birthday Problem}
@@ -374,13 +374,13 @@ Then the specific attack can not work.
       \pcreturn (g^s = R \tX^c)
     }
     \pcvspace
-    \procedure{$\sign(\mathmod{\sk_1})$}{%
+    \procedure{$\sign()$}{%
       \mathmod{t \defeq \mathmod{\keytweak()}} \\
       \pclinecomment{Local signer has index $1$.} \\
       \pcfor j \defeq 1 \ldots \nu \pcdo \\
         \t r_{1,j} \sample \ZZ_p \pcsc R_{1,j} \defeq g^{r_{1,j}} \\
       \msg_1 \defeq (R_{1,1},\ldots,R_{1,\nu}) \\
-      \state_1 \defeq (r_{1,1},\ldots,r_{1,\nu}, \mathmod{\sk_1 + t \bmod p}) \\
+      \state_1 \defeq (r_{1,1},\ldots,r_{1,\nu}, \mathmod{t}) \\
       \pcreturn (\msg_1,\state_1)
     }
    \end{pcvstack}
@@ -394,10 +394,10 @@ Then the specific attack can not work.
      \pcreturn \msg \defeq (R_1, \ldots, R_\nu)
     }
     \pcvspace
-    \procedure{$\sign'(\state_1,\msg,\mathmod{\stkout{\sk_1}},m,(\pk_2,\ldots,\pk_n))$}{%
+    \procedure{$\sign'(\state_1,\msg,\sk_1,m,(\pk_2,\ldots,\pk_n))$}{%
       \pclinecomment{$\sign'$ must be called at most once per $\state_1$.} \\
-      (r_{1,1},\ldots,r_{1,\nu}, \mathmod{x_1}) \defeq \state_1 \\
-      X_1 \defeq g^{x_1} \\
+      (r_{1,1},\ldots,r_{1,\nu}, \mathmod{t}) \defeq \state_1 \\
+      x_1 \defeq \sk_1 \mathmod{+ t \bmod p} \pcsc X_1 \defeq g^{x_1} \\
       (X_2, \ldots, X_n) \defeq (\pk_2, \ldots, \pk_n)\\
       L \defeq \{X_1,\ldots,X_n\} \\
       a_1 \defeq \musigcoef(L,X_1)\\
@@ -425,14 +425,8 @@ Then the specific attack can not work.
   \end{pchstack}
  \end{tcolorbox}
  \caption{The multi-signature scheme $\musigtwotweak[\grgen,\nu]$. The differences to $\musigtwo[\grgen,\nu]$ are displayed in \textmod{red}.}
- \label{fig:ms}
+ \label{fig:ms-tweaking}
 \end{figure}
-
-Other possible fixes:
-\begin{itemize}
-\item commit to pk
-\item use separate $b$ per signer
-\end{itemize}
 
 \section{Conclusion}
 Other multisignature schemes that use a key agg coefficient are similarly vulnerable.
