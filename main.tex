@@ -135,21 +135,6 @@
 
 
 \begin{document}
-\author{
-  Jonas Nick\inst{1} \and
-  Tim Ruffing\inst{1} \and
-  Yannick Seurin\inst{2}
- }
- \institute{
- Blockstream \and
- ANSSI, Paris, France\iffull \\[1.5ex]
-  \email{
-  jonas@n-ck.net \\
-  crypto@timruffing.de \\
-  yannick.seurin@m4x.org
-  }
- \fi
-}
 
 \title{
     A Note on Unforgeability of MuSig2 with Key Tweaking
@@ -280,6 +265,7 @@ For $\smax = 2^{\sqrt{\log_2(p)}-1}$ the complexity of this algorithm is $O(2^{2
 \jnote{Perhaps can use BLOR? ``If the attacker is able to open more sessions concurrently, the improved polynomial-time attack by Benhamouda \emph{et al.}~\cite{add:BLOR20} assumes $\smax > \log_2 p$ sessions, but then has complexity $O(\smax \log_2 p)$ and a negligible running time in practice.''}
 
 \section{Description of the Attack against $\musigtwontweak$}
+\label{sec:attack}
 
 The adversary calls $\keytweak$ $\lmax \in O(2^{2\sqrt{\log_2(p)}})$ times to obtain values $t^{(1)}, \ldots, t^{(\lmax)}$ and computes the multiset of public keys $L$ and aggregate key $\tX$ for the (untweaked) public key of the honest signer $X_1'=g^{x_1}$ as
 \begin{align*}
@@ -321,16 +307,28 @@ If the adversary can open at least $\log_2 p$ sessions, then the algorithm has c
 In contrast to the attack based on Wagner's algorithm, this attack allows using multisets of public keys that only have two elements.
 
 \section{Where the security proof of $\musigtwo$ fails against $\musigtwontweak$}
-TODO
-Look at ROM proof of MuSig (section)
-We have a != a but b = b
-\jnote{this section is not strictly necessary}
+\jnote{TODO: $a \ne a$ but $b = b$}
 
 \section{A Fixed MuSig2 Variant with Tweaking}
-TODO
-Section's bla and blub indicate that is secure when
-Make sure that attacker can not choose the signers pubkey after seeing the signers nonces.
-Then the specific attack can not work.
+
+The attack in \autoref{sec:attack} relies on selecting a tweak $t^{(\si)}$ for a signing session $\si$ \emph{after} obtaining nonces $R_{1,1}^{(\si)}, \ldots, R_{1, \nu}^{(\si)}$.
+If $t^{(\si)}$ was determined before the nonces of the session, then the function $f$ in Equation~\eqref{eq:wagner-musig} is fixed and, in particular, can not be influenced by the attacker.
+This is accomplished by the scheme shown in Figure \ref{fig:ms-naivetweaking}, which associates a fixed tweak when generating the nonces and is, therefore, not vulnerable to the attack.
+
+Instead of generating the tweak in $\sign$ as shown in Figure \ref{fig:ms-naivetweaking}, one can also prevent the attack by modifying $\sign$ to take the tweaked secret key $\sk_1 + t^{(\si)} \bmod p$ or tweaked public key $X_1 g^{t^{(\si)}}$ as input.
+This modified scheme would then write the tweaked secret or public key into $\state_1$ and refuse to sign for anything but the tweaked secret or public key with this $\state_1$.
+
+It is also possible to stop the attack without having to determine tweak $t^{(\si)}$ before outputting the session's nonces.
+This can be achieved by changing the scheme so that each signer $i$ gets a different nonce coefficient $b_i$ instead of using a single nonce coefficient $b$ for all signers of a signing session.
+However, using a separate nonce coefficient $b_i$ increases the communication complexity of the scheme because it precludes nonce aggregation via $\signagg$.
+All other signers' nonces $R_{2,1}, \ldots, R_{2,\nu}, \ldots, R_{n,1}, \ldots, R_{n,\nu}$ are required to be input to $\sign$ and $b_i$, $R$ and $s_1$ are computed as
+
+\begin{align*}
+% \mathmod doesn't work here unfortunately
+b_i &\defeq \Hnon(\tX,(\textcolor{red}{\bm{R_{1,1}, \ldots, R_{1,\nu}, \ldots, R_{n,1}, \ldots, R_{n,\nu}}}),m,\mathmod{X_i}) \quad i \in [1,n] \\
+R &\defeq \mathmod{\sprod_{i=1}^n} \sprod_{j=1}^{\nu} R_{\mathmod{i},j}^{b_{\mathmod{i}}^{j-1}} \\
+s_1 &\defeq c a_1 x_1 + \ssum_{i=1}^{\nu} r_{1,j} b_{\mathmod{1}}^{j-1} \bmod p.
+\end{align*}
 
 \begin{figure}
  \begin{tcolorbox}[boxsep=-1mm]
@@ -435,5 +433,9 @@ Other multisigs and fix?
 \item MuSig1 with naive tweaking: if tweak comes in
 \item multisig with PoK and naive tweaking: there's no ``naive'' tweaking with PoK
 \end{itemize}
+
+\section*{Acknowledgments}
+
+We thank Yannick Seurin for identifying a vulnerability in a related scheme that ultimately led to the discovery of the attack discussed in this note.
 
 \end{document}
