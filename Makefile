@@ -1,4 +1,6 @@
-main.pdf: main.tex
+main.pdf: main.tex add.bib
+	pdflatex main.tex
+	bibtex main
 	pdflatex main.tex
 	pdflatex main.tex
 

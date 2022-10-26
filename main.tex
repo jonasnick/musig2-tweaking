@@ -117,7 +117,7 @@
   maxbibnames=99,
   date=year
 ]{biblatex}
-
+\addbibresource{add.bib}
 
 \usepackage[lambda,
             advantage,
@@ -148,7 +148,7 @@ In this note, we show that a variant of $\musigtwo$ with naive tweaking is insec
 \end{abstract}
 
 \section{The Vulnerable Scheme}
-Figure \ref{fig:ms-naivetweaking} shows $\musigtwontweak$, a multi-signature scheme that is identical to $\musigtwo$ except that it has the additional capability of signing for a tweaked public key.
+Figure \ref{fig:ms-naivetweaking} shows $\musigtwontweak$, a multi-signature scheme that is identical to $\musigtwo$~\cite{nick2021musig2} except that it has the additional capability of signing for a tweaked public key.
 There are multiple variants of tweaking, which differ mainly in how the tweak $t$ is derived.
 We chose a variant of tweaking for $\musigtwontweak$ that gives the adversary the minimal power necessary to make the attack work.
 In particular, the honest signer generates uniformly random tweaks without input from the adversary and outputs possible tweaks.
@@ -253,7 +253,7 @@ $\musigtwontweak$ uses \emph{additive} tweaking, but the attack similarly applie
 \end{figure}
 
 \section{Generalized Birthday Problem}
-The attack against $\musigtwontweak$ makes use of Wagner's algorithm for solving the Generalized Birthday Problem
+The attack against $\musigtwontweak$ makes use of Wagner's algorithm~\cite{C:Wagner02} for solving the Generalized Birthday Problem
 It can be defined as follows for the purpose of this paper:
 Given a constant value $t\in\integ_p$, an integer $\smax$,
 and access to random oracle $H$ mapping onto $\integ_p$,
@@ -262,7 +262,6 @@ find a set $\{q_1, \ldots, q_{\smax}\}$ of $\smax$ queries such that
   \sum_{\si=1}^{\smax} H(q_{\si}) = t.
 \)
 For $\smax = 2^{\sqrt{\log_2(p)}-1}$ the complexity of this algorithm is $O(2^{2\sqrt{\log_2(p)}})$.
-\jnote{Perhaps can use BLOR? ``If the attacker is able to open more sessions concurrently, the improved polynomial-time attack by Benhamouda \emph{et al.}~\cite{add:BLOR20} assumes $\smax > \log_2 p$ sessions, but then has complexity $O(\smax \log_2 p)$ and a negligible running time in practice.''}
 
 \section{Description of the Attack against $\musigtwontweak$}
 \label{sec:attack}
@@ -301,8 +300,8 @@ The last summand can be subtracted as
 to obtain $(R^*, s^*)$, a valid forgery on message $m^*$ for public key $X_1'$.
 
 
-\section{BLOR attack}
-Benhamouda \emph{et al.}~\cite{add:BLOR20} give an algorithm that solves the ROS problem and can be applied to attack to break unforgeability of $\musigtwontweak$.
+\section{BLLOR attack}
+Benhamouda, Lepoint, Loss, Orrù, and Raykova~\cite{add:BLOR20} describe an algorithm that solves the ROS problem and can be applied to attack to break unforgeability of $\musigtwontweak$.
 If the adversary can open at least $\log_2 p$ sessions, then the algorithm has complexity $O(\log_2^2 p)$ and a negligible running time in practice (otherwise a variant of the algorithm can be applied that has a higher complexity).
 In contrast to the attack based on Wagner's algorithm, this attack allows using multisets of public keys that only have two elements.
 
@@ -437,5 +436,7 @@ Other multisigs and fix?
 \section*{Acknowledgments}
 
 We thank Yannick Seurin for identifying a vulnerability in a related scheme that ultimately led to the discovery of the attack discussed in this note.
+
+\printbibliography
 
 \end{document}
