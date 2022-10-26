@@ -1,0 +1,230 @@
+\newcommand{\tnote}[1]{\todo[color=yellow!30, inline]{\textbf{Tim's note:} #1}}
+\newcommand{\pnote}[1]{\todo[color=green!30, inline]{\textbf{Pieter's note:} #1}}
+\newcommand{\jnote}[1]{\todo[color=orange!30, inline]{\textbf{Jonas' note:} #1}}
+\newcommand{\dnote}[1]{\todo[color=purple!30, inline]{\textbf{Duc's note:} #1}}
+
+\renewcommand{\pcadvantagesuperstyle}[1]{\operatorname{{#1}}}
+
+% a lower version of \widetilde that does not interfere with the lineheight
+% when applied to \mathsf{pk}.
+% from https://tex.stackexchange.com/a/3895
+\makeatletter
+\newcommand*\wt[2][0.2ex]{%
+        \begingroup
+        \mathchoice{\wt@helper{#1}{#2}{\displaystyle}{\textfont}}
+                   {\wt@helper{#1}{#2}{\textstyle}{\textfont}}
+                   {\wt@helper{#1}{#2}{\scriptstyle}{\scriptfont}}
+                   {\wt@helper{#1}{#2}{\scriptscriptstyle}{\scriptscriptfont}}%
+        \endgroup
+        #2%
+}
+\newcommand*\wt@helper[4]{%
+        \def\currentfont{\the#41}%
+        \def\currentskewchar{\char\the\skewchar\currentfont}%
+        \setbox\tw@\hbox{\currentfont#2\currentskewchar}%
+        \dimen@ii\wd\tw@
+        \setbox\tw@\hbox{\currentfont#2{}\currentskewchar}%
+        \advance\dimen@ii-\wd\tw@
+        \rlap{\raisebox{-#1}{$\m@th#3\kern\dimen@ii\widetilde{\phantom{#2}}$}}%
+}
+\makeatother
+
+%----GENERAL COMMANDS----------------
+
+\newcommand{\defin}{\mathrel{\mathop=^{\rm def}}}
+% a nicer := sign ("is defined as"), http://tex.stackexchange.com/questions/4216/how-to-typeset-correctly
+\makeatletter
+\DeclareRobustCommand{\defeq}{\mathrel{\rlap{%
+  \raisebox{0.3ex}{$\m@th\cdot$}}%
+  \raisebox{-0.3ex}{$\m@th\cdot$}}%
+  =}
+\DeclareRobustCommand{\eqdef}{=\mathrel{\rlap{%
+  \raisebox{0.3ex}{$\m@th\cdot$}}%
+  \raisebox{-0.3ex}{$\m@th\cdot$}}%
+  }
+\makeatother\newcommand{\bool}{\{0,1\}}
+\newcommand{\str}{\bool^*}
+% \newcommand{\poly}{{\tt poly}}
+% \newcommand{\negl}{{\tt negl}}
+\newcommand{\nat}{\mathbb{N}}
+\newcommand{\integ}{\mathbb{Z}}
+\newcommand{\real}{\mathbb{R}}
+\newcommand{\complex}{\mathbb{C}}
+\newcommand{\field}{\mathbb{F}}
+\newcommand{\ve}{\varepsilon}
+\newcommand{\la}{\leftarrow}
+\newcommand{\pr}[1]{\Pr\left[ #1 \right]}
+\newcommand{\cond}{\middle|}
+\newcommand{\ignore}[1]{}
+\iffull
+\newcommand{\hd}[1]{\paragraph{\sc #1}}
+\else
+\newcommand{\hd}[1]{\paragraph{#1}} % don't use personalized style in anonymous submission
+\fi
+
+\newcommand{\vect}[1]{\vec{#1}}
+
+%----SPECIFIC COMMANDS-----------------
+
+\newcommand{\mathsc}[1]{{\normalfont\textsc{#1}}}
+\newcommand{\musig}{\ensuremath{\mathsf{MuSig}}\xspace}
+\newcommand{\musigtwo}{\ensuremath{\mathsf{MuSig2}}\xspace}
+\newcommand{\musigtwotweak}{\ensuremath{\mathsf{MuSig2Tweak}}\xspace}
+\newcommand{\musigtwontweak}{\ensuremath{\mathsf{MuSig2NaiveTweak}}\xspace}
+\newcommand{\musigtwostar}{\ensuremath{\mathsf{MuSig2^*}}\xspace}
+\newcommand{\musigbroken}{\ensuremath{\mathsf{InsecureMuSig}}\xspace}
+\newcommand{\musigdn}{\ensuremath{\mathsf{MuSig\textnormal{-}DN}}\xspace}
+\newcommand{\mbcj}{\ensuremath{\mathsf{mBCJ}}\xspace}
+\newcommand{\bn}{\ensuremath{\mathsf{BN}}\xspace}
+\newcommand{\cosi}{\ensuremath{\mathsf{CoSi}}\xspace}
+\newcommand{\msdlpop}{\ensuremath{\mathsf{MSDL\textnormal{-}pop}}\xspace}
+\newcommand{\frost}{\ensuremath{\mathsf{FROST}}\xspace}
+\newcommand{\frosti}{\ensuremath{\mathsf{FROST\textnormal{-}Interactive}}\xspace}
+\newcommand{\dwms}{\ensuremath{\mathsf{DWMS}}\xspace}
+\newcommand{\eufcma}{\ensuremath{\mathsf{EUF\textnormal{-}CMA}}\xspace}
+\newcommand{\eufcmaalt}{\ensuremath{\mathsf{EUF\textnormal{-}CMA'}}\xspace}
+\newcommand{\correct}{\ensuremath{\mathsf{CORRECT}}\xspace}
+\newcommand{\dl}{\ensuremath{\mathsf{DL}}\xspace}
+\newcommand{\omdl}{\ensuremath{\mathsf{OMDL}}\xspace}
+\newcommand{\aomdl}{\ensuremath{\mathsf{AOMDL}}\xspace}
+\newcommand{\grgen}{\mathsf{GrGen}}
+\newcommand{\setup}{\mathsf{Setup}}
+\newcommand{\keygen}{\mathsf{KeyGen}}
+\newcommand{\keytweak}{\mathsf{KeyTweak}}
+\newcommand{\sign}{\mathsf{Sign}}
+\newcommand{\signagg}{\mathsf{SignAgg}}
+\newcommand{\ver}{\mathsf{Ver}}
+\newcommand{\musigcoef}{\mathsf{KeyAggCoef}}
+\newcommand{\keyagg}{\mathsf{KeyAgg}}
+\newcommand{\keyaggbroken}{\mathsf{InsecureKeyAgg}}
+\newcommand{\inpgen}{\mathsf{InpGen}}
+% \newcommand{\pk}{\mathsf{pk}}
+% \newcommand{\sk}{\mathsf{sk}}
+% \newcommand{\GG}{\mathbb{G}}
+\newcommand{\apk}{\wt{\pk}}
+\newcommand{\anL}{\langle L \rangle}
+\newcommand{\anS}{\langle S \rangle}
+\newcommand{\Hc}{H_{\mathrm{c}}}
+\newcommand{\ctrh}{\mathit{ctrh}}
+\newcommand{\ctrs}{\mathit{ctrs}}
+\newcommand{\ctrhagg}{\mathit{ctrh}_{\mathrm{agg}}}
+\newcommand{\ctrhsig}{\mathit{ctrh}_{\mathrm{sig}}}
+\newcommand{\ctrhnon}{\mathit{ctrh}_{\mathrm{non}}}
+\newcommand{\ctr}{\mathit{ctr}}
+\newcommand{\tX}{\widetilde{X}}
+\newcommand{\tx}{\tilde{x}}
+\newcommand{\ba}{\vect{a}}
+\newcommand{\bh}{\vect{h}}
+\newcommand{\bv}{\vect{v}}
+\newcommand{\DL}{\mathsc{DLog}}
+\newcommand{\ADL}{\mathsc{DLog}}
+\newcommand{\fork}{\mathsf{Fork}}
+\newcommand{\inp}{\mathit{inp}}
+\newcommand{\out}{\mathit{out}}
+\newcommand{\acc}{\mathit{acc}}
+\newcommand{\frk}{\mathit{frk}}
+\newcommand{\bad}{\mathsf{Bad}}
+\newcommand{\alert}{\mathsf{Alert}}
+\newcommand{\tr}{\mathtt{true}}
+\newcommand{\false}{\mathtt{false}}
+\newcommand{\ev}{\mathbf{E}}
+\newcommand{\Hagg}{\mathsf{H}_{\mathrm{agg}}}
+\newcommand{\Hsig}{\mathsf{H}_{\mathrm{sig}}}
+\newcommand{\Hnon}{\mathsf{H}_{\mathrm{non}}}
+\newcommand{\Ht}{\mathsf{H}_{\mathrm{tweak}}}
+\newcommand{\HHagg}{\overline{\mathsf{H}}_{\mathrm{agg}}}
+\newcommand{\HHsig}{\overline{\mathsf{H}}_{\mathrm{sig}}}
+\newcommand{\HHnon}{\overline{\mathsf{H}}_{\mathrm{non}}}
+\newcommand{\Tagg}{T_{\mathrm{agg}}}
+\newcommand{\Tsig}{T_{\mathrm{sig}}}
+\newcommand{\Tnon}{T_{\mathrm{non}}}
+\newcommand{\Takey}{T_{\mathrm{akey}}}
+\newcommand{\Tsigrep}{T_{\mathrm{sigrep}}}
+\newcommand{\Ttweaks}{T_{\mathrm{tweaks}}}
+\newcommand{\Tagginv}{T_{\mathrm{agginv}}}
+\newcommand{\Tqueried}{T_{\mathrm{queried}}}
+\newcommand{\hagg}[1]{h_{\mathrm{agg},#1}}
+\newcommand{\haggSingle}{h_{\mathrm{agg}}}
+\newcommand{\hnon}[1]{h_{\mathrm{non},#1}}
+\newcommand{\hsig}[1]{h_{\mathrm{sig},#1}}
+\newcommand{\hsigSingle}{h_{\mathrm{sig}}}
+\newcommand{\iagg}{i_{\mathrm{agg}}}
+\newcommand{\jagg}{j_{\mathrm{agg}}}
+\newcommand{\isig}{i_{\mathrm{sig}}}
+\newcommand{\jsig}{j_{\mathrm{sig}}}
+\newcommand{\sessions}{S}
+\newcommand{\msg}{\mathit{out}}
+\renewcommand{\state}{\mathit{state}}
+\newcommand{\queries}{\mathsf{Q}}
+\newcommand{\js}{\mathsf{J}}
+\ifdefined\pcgame % HACK to make this compile for both Yannick as well as others
+\renewcommandx{\pcgame}[4][3=\adv,4=(\secpar)]{{\operatorname{#1}_{#2}^{#3}#4}}
+\else
+\newcommandx{\pcgame}[4][3=\adv,4=(\secpar)]{{\operatorname{#1}_{#2}^{#3}#4}}
+\fi
+\unless\ifdefined\pclinecomment
+\newcommand{\pclinecomment}[2][0em]{\hspace{#1}{\mbox{/\!\!/ } \text{\scriptsize#2}}}
+\fi
+\newcommand{\emptylist}{(\,)}
+\newcommand{\signo}{\mathsc{Sign}}
+\newcommand{\chalo}{\mathsc{Ch}}
+\newcommand{\keyaggo}{\mathsc{KeyAgg}}
+\newcommand{\pcsc}{\,;~}
+\newcommand{\agmacc}{26q^3/2^{\secpar}}
+\newcommand{\agmtime}{t + O(qN) \cdot t_{\rm exp} + O(q^3)}
+\newcommand{\startime}{t + O(qN) t_{\rm exp}}
+\newcommand{\q}{2q_h+q_s+1}
+\newcommand{\param}{\mathit{par}} % public parameters of the multisig scheme
+\newcommand{\gparam}{(\GG,p,g)}
+\newcommand{\ssum}{\textstyle \sum}
+\newcommand{\sprod}{\textstyle \prod}
+\newcommand{\Zpp}{\mathbb{Z}_p} % currently Z_p, could be redefined to be a subset of Z_p (if we generalize the range of Hsig, Hagg to a subset of Z_p)
+% HACK What was \pp before?
+\renewcommand{\pp}{p} % currently p, could be redefined to the size of \Zpp
+\newcommand{\game}{\mathsf{Game}}
+\newcommand{\tg}[3]{\tilde{\gamma}_{#1,#2,#3}}
+% session index and session max index
+\newcommand{\si}{k}
+\newcommand{\smax}{k_{\mathrm{max}}}
+\newcommand{\lmax}{\ell_{\mathrm{max}}}
+\newcommand{\tK}{\widetilde{K}}
+\newcommand{\before}{\rightsquigarrow}
+
+% Bad events
+\newcommand{\badcom}{\mathsf{BadCom}}
+\newcommand{\badprog}{\mathsf{BadProg}}
+\newcommand{\badorder}{\mathsf{BadOrder}}
+\newcommand{\keycoll}{\mathsf{KeyColl}}
+\newcommand{\lindep}{\mathsf{LinDep}}
+\newcommand{\aggfail}{\mathsf{AggFail}}
+\newcommand{\noncoll}{\mathsf{NonColl}}
+\newcommand{\badtsig}{\mathsf{BadTsig}}
+\newcommand{\badtnon}{\mathsf{BadTnon}}
+\newcommand{\checkagg}{\mathsf{CheckTagg}}
+\newcommand{\checknon}{\mathsf{CheckTnon}}
+\newcommand{\checksig}{\mathsf{CheckTsig}}
+\newcommand{\issecond}{\mathsf{IsSecond}}
+\newcommand{\transl}{\mathsf{transl}}
+
+
+\newcommand{\kmax}{k_{\mathrm{max}}}
+  
+\newcommand{\pcdoublebox}[1]{%
+  {\setlength{\fboxsep}{1pt}\fbox{%
+  {\setlength{\fboxsep}{3pt}\fbox{%
+  $\displaystyle#1$%
+  }}%
+  }}%
+}%
+
+\newcommand{\pcboxblock}[1]{%
+\hspace{-2pt}{\setlength{\fboxsep}{2pt}\fbox{\pseudocode{#1}}}%
+}
+
+\newcommand{\pcdoubleboxblock}[1]{%
+\hspace{-3pt}{\setlength{\fboxsep}{1pt}\fbox{\setlength{\fboxsep}{2pt}\fbox{\pseudocode{#1}}}}%
+}
+
+\newcommand{\textmod}[1]{{\textcolor{red}{\textbf{#1}}}}
+\newcommand{\mathmod}[1]{{\textcolor{red}{\mathbf{#1}}}}
+\newcommand{\stkout}[1]{\ifmmode\text{\sout{\ensuremath{#1}}}\else\sout{#1}\fi}

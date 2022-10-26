@@ -142,16 +142,18 @@
 \maketitle
 
 \begin{abstract}
-\emph{Key Tweaking} refers to the process of producing a new pair of secret and public key from a given pair.
+\emph{Key Tweaking} refers to the process of producing a new pair of secret and public key from a given keypair.
 This is used, for example, to derive fresh keys from a master keypair or to create a commitment to a value such that the commitment is also a public key.
-In this note, we show that a variant of $\musigtwo$ with naive tweaking is insecure and propose a variant that is not vulnerable against the attack.
+In this note, we demonstrate that a variant of $\musigtwo$ with naive support for key tweaking is insecure and show an alternative method of tweaking that is not vulnerable to the attack.
 \end{abstract}
 
 \section{The Vulnerable Scheme}
-Figure \ref{fig:ms-naivetweaking} shows $\musigtwontweak$, a multi-signature scheme that is identical to $\musigtwo$~\cite{nick2021musig2} except that it has the additional capability of signing for a tweaked public key.
+Figure \ref{fig:ms-naivetweaking} shows $\musigtwontweak$, a multi-signature scheme identical to $\musigtwo$~\cite{nick2021musig2} except that it additionally allows signing for a tweaked public key.
 There are multiple variants of tweaking, which differ mainly in how the tweak $t$ is derived.
-We chose a variant of tweaking for $\musigtwontweak$ that gives the adversary the minimal power necessary to make the attack work.
-In particular, the honest signer generates uniformly random tweaks without input from the adversary and outputs possible tweaks.
+We chose a variant of tweaking for $\musigtwontweak$ that gives the adversary the minimal capability necessary to execute the attack.
+In particular, the honest $\musigtwontweak$ signer has an algorithm $\keytweak$ that generates public, uniformly random tweaks without input from the adversary.
+The signer accepts an externally provided tweak when signing but only if it has been output by $\keytweak$.
+
 $\musigtwontweak$ uses \emph{additive} tweaking, but the attack similarly applies to \emph{multiplicative} tweaking.
 
 \begin{figure}
@@ -253,8 +255,8 @@ $\musigtwontweak$ uses \emph{additive} tweaking, but the attack similarly applie
 \end{figure}
 
 \section{Generalized Birthday Problem}
-The attack against $\musigtwontweak$ makes use of Wagner's algorithm~\cite{C:Wagner02} for solving the Generalized Birthday Problem
-It can be defined as follows for the purpose of this paper:
+The attack against $\musigtwontweak$ described below makes use of Wagner's algorithm~\cite{C:Wagner02} for solving the Generalized Birthday Problem.
+It can be defined as follows for the purpose of this note:
 Given a constant value $t\in\integ_p$, an integer $\smax$,
 and access to random oracle $H$ mapping onto $\integ_p$,
 find a set $\{q_1, \ldots, q_{\smax}\}$ of $\smax$ queries such that
@@ -278,14 +280,14 @@ Then, the adversary opens $\smax = 2^{\sqrt{\log_2(p)}-1}$ concurrent signing se
   b &= \Hnon(\tX,(R_1,\ldots,R_\nu),m)\\
   R^* &= \prod_{j=1}^{\nu} R_j^{b^{j-1}}.
 \end{align*}
-Now it is possible to use Wagner's algorithm to find a function $f:[1, \smax] \rightarrow [1,\lmax]$ that associates a value $t^{(\ell)}$ to each session $\si$ such that
+Now it is possible to use Wagner's algorithm to find a function $f:[1, \smax] \rightarrow [1,\lmax]$ that associates a tweak $t^{(\ell)}$ to each session $\si$ such that
 
 \begin{equation}\label{eq:wagner-musig}
   \sum_{\si=1}^{\smax} \underbrace{\Hagg(L, X_1'g^{t^{(f(\si))}})}_{=:\,a_1^{(\si)}} \underbrace{\Hsig(\tX, R^*, m)}_{=:\,c^{(\si)}}
   = \underbrace{\Hsig(X_1', R^*, m^*)}_{=:\,c^*} .
 \end{equation}
 for a forgery target message $m^*$.
-For all $\si \in [1, \kmax]$ the honest signer is asked for a partial signature using value $C^{f(\si)}$ which is answered with $s_1^{(\si)} = r_{1,1}^{(\si)} + b r_{1,2}^{(\si)} +  c^{(\si)} \cdot a_1^{(\si)} (x_1 + t^{(f(\si))})$.
+For all $\si \in [1, \kmax]$, the adversary asks the honest signer for a partial signature using value $t^{f(\si)}$ which is answered with $s_1^{(\si)} = r_{1,1}^{(\si)} + b r_{1,2}^{(\si)} +  c^{(\si)} \cdot a_1^{(\si)} (x_1 + t^{(f(\si))})$.
 This  allows the adversary to compute
 \begin{align}\label{eq:s-sum}
   s_1^{*'} &=  \sum_{\si=1}^\smax s_1^{(\si)}\\
@@ -293,34 +295,34 @@ This  allows the adversary to compute
   &= \log_g(R^*) +  c^* x_1 + \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}
 \end{align}
 where the last equality follows from Equation~\eqref{eq:wagner-musig}.
-The last summand can be subtracted as
+The adversary can subtract the last summand
 \[
   s_1^* =  s_1^{*'} - \sum_{\si=1}^\smax c^{(\si)} a_1^{(\si)}t^{(f(\si))}
 \]
 to obtain $(R^*, s^*)$, a valid forgery on message $m^*$ for public key $X_1'$.
 
 
-\section{BLLOR attack}
-Benhamouda, Lepoint, Loss, Orrù, and Raykova~\cite{add:BLOR20} describe an algorithm that solves the ROS problem and can be applied to attack to break unforgeability of $\musigtwontweak$.
-If the adversary can open at least $\log_2 p$ sessions, then the algorithm has complexity $O(\log_2^2 p)$ and a negligible running time in practice (otherwise a variant of the algorithm can be applied that has a higher complexity).
-In contrast to the attack based on Wagner's algorithm, this attack allows using multisets of public keys that only have two elements.
+\section{BLLOR Attack}
+Benhamouda, Lepoint, Loss, Orrù, and Raykova~\cite{add:BLOR20} describe an algorithm that solves the ROS problem and can be applied to attack to break the unforgeability of $\musigtwontweak$.
+If the adversary can open at least $\log_2 p$ sessions, then the algorithm has complexity $O(\log_2^2 p)$ and a negligible running time in practice (otherwise, a variant of the algorithm can be applied that has a higher complexity).
+In contrast to the attack based on Wagner's algorithm, this attack allows using multisets of public keys with only two elements.
 
-\section{Where the security proof of $\musigtwo$ fails against $\musigtwontweak$}
-\jnote{TODO: $a \ne a$ but $b = b$}
+\section{Where the Security Proof of $\musigtwo$ Fails when Adding Naive Tweaking}
+\jnote{TODO: In the ROM proof we would have two exections where $a \ne a'$ but $b = b'$.}
 
 \section{A Fixed MuSig2 Variant with Tweaking}
 
 The attack in \autoref{sec:attack} relies on selecting a tweak $t^{(\si)}$ for a signing session $\si$ \emph{after} obtaining nonces $R_{1,1}^{(\si)}, \ldots, R_{1, \nu}^{(\si)}$.
-If $t^{(\si)}$ was determined before the nonces of the session, then the function $f$ in Equation~\eqref{eq:wagner-musig} is fixed and, in particular, can not be influenced by the attacker.
+If $t^{(\si)}$ was determined before the nonces of the session, then the function $f$ in Equation~\eqref{eq:wagner-musig} is fixed and can not be influenced by the attacker.
 This is accomplished by the scheme shown in Figure \ref{fig:ms-naivetweaking}, which associates a fixed tweak when generating the nonces and is, therefore, not vulnerable to the attack.
 
 Instead of generating the tweak in $\sign$ as shown in Figure \ref{fig:ms-naivetweaking}, one can also prevent the attack by modifying $\sign$ to take the tweaked secret key $\sk_1 + t^{(\si)} \bmod p$ or tweaked public key $X_1 g^{t^{(\si)}}$ as input.
-This modified scheme would then write the tweaked secret or public key into $\state_1$ and refuse to sign for anything but the tweaked secret or public key with this $\state_1$.
+This modified scheme would then write the tweaked secret or public key into $\state_1$ and make sure that $\sign'(\state_1, \ldots)$ outputs a signature for the tweaked secret or public key contained in $\state_1$.
 
 It is also possible to stop the attack without having to determine tweak $t^{(\si)}$ before outputting the session's nonces.
 This can be achieved by changing the scheme so that each signer $i$ gets a different nonce coefficient $b_i$ instead of using a single nonce coefficient $b$ for all signers of a signing session.
-However, using a separate nonce coefficient $b_i$ increases the communication complexity of the scheme because it precludes nonce aggregation via $\signagg$.
-All other signers' nonces $R_{2,1}, \ldots, R_{2,\nu}, \ldots, R_{n,1}, \ldots, R_{n,\nu}$ are required to be input to $\sign$ and $b_i$, $R$ and $s_1$ are computed as
+However, using a separate nonce coefficient $b_i$ increases the communication complexity of the scheme because it prevents nonce aggregation via $\signagg$.
+In this scheme, all other signers' nonces $R_{2,1}, \ldots, R_{2,\nu}, \ldots, R_{n,1}, \ldots, R_{n,\nu}$ are required to be input to $\sign$ and $b_i$, $R$ and $s_1$ are computed as
 
 \begin{align*}
 % \mathmod doesn't work here unfortunately
@@ -425,13 +427,11 @@ s_1 &\defeq c a_1 x_1 + \ssum_{i=1}^{\nu} r_{1,j} b_{\mathmod{1}}^{j-1} \bmod p.
  \label{fig:ms-tweaking}
 \end{figure}
 
-\section{Conclusion}
-Other multisignature schemes that use a key agg coefficient are similarly vulnerable.
-Other multisigs and fix?
-\begin{itemize}
-\item MuSig1 with naive tweaking: if tweak comes in
-\item multisig with PoK and naive tweaking: there's no ``naive'' tweaking with PoK
-\end{itemize}
+\section{Which Schemes are Vulnerable?}
+
+The attack discussed in this note targets the key aggregation coefficient $a_1$ in $\musigtwo$.
+$\musig 1$ would be similarly vulnerable if the adversary can select the tweak to sign with after seeing the nonce.
+Schemes without a key aggregation coefficient, e.g., those relying on proof-of-knowledge of the public key instead of $\musig$-style key aggregation, are not affected.
 
 \section*{Acknowledgments}
 
