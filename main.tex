@@ -314,9 +314,9 @@ In contrast to the attack based on Wagner's algorithm, this attack allows using 
 
 The attack in \autoref{sec:attack} relies on selecting a tweak $t^{(\si)}$ for a signing session $\si$ \emph{after} obtaining nonces $R_{1,1}^{(\si)}, \ldots, R_{1, \nu}^{(\si)}$.
 If $t^{(\si)}$ was determined before the nonces of the session, then the function $f$ in Equation~\eqref{eq:wagner-musig} is fixed and can not be influenced by the attacker.
-This is accomplished by the scheme shown in Figure \ref{fig:ms-naivetweaking}, which associates a fixed tweak when generating the nonces and is, therefore, not vulnerable to the attack.
+This is accomplished by the scheme shown in Figure \ref{fig:ms-tweaking}, which associates a fixed tweak when generating the nonces and is, therefore, not vulnerable to the attack.
 
-Instead of generating the tweak in $\sign$ as shown in Figure \ref{fig:ms-naivetweaking}, one can also prevent the attack by modifying $\sign$ to take the tweaked secret key $\sk_1 + t^{(\si)} \bmod p$ or tweaked public key $X_1 g^{t^{(\si)}}$ as input.
+Instead of generating the tweak in $\sign$ as shown in Figure \ref{fig:ms-tweaking}, one can also prevent the attack by modifying $\sign$ to take the tweaked secret key $\sk_1 + t^{(\si)} \bmod p$ or tweaked public key $X_1 g^{t^{(\si)}}$ as input.
 This modified scheme would then write the tweaked secret or public key into $\state_1$ and make sure that $\sign'(\state_1, \ldots)$ outputs a signature for the tweaked secret or public key contained in $\state_1$.
 
 It is also possible to stop the attack without having to determine tweak $t^{(\si)}$ before outputting the session's nonces.
